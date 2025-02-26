@@ -11,7 +11,7 @@ spec:
       image: python:3.9-slim  
       command: ["/bin/sh", "-c"]
       args:
-        - echo "Installing dependencies..." &&
+        - echo "Installing dependencies..." &
           pip install requests &&
           echo "Setup complete.";
   containers:
