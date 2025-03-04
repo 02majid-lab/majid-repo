@@ -1,0 +1,51 @@
+FROM ubuntu:20.04
+
+# Set non-interactive mode to prevent timezone prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install necessary dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    libssl-dev \
+    libpcre2-dev \
+    zlib1g-dev \
+    libuuid1 \
+    gpg \
+    autoconf \
+    automake \
+    libtool \
+    pkg-config \
+    libgnutls28-dev \
+    gettext \
+    texinfo \
+    checkinstall \
+    ca-certificates \
+    tzdata && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set timezone to avoid interactive prompt (e.g., UTC)
+RUN ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+    dpkg-reconfigure --frontend noninteractive tzdata
+
+# Define working directory for source compilation
+WORKDIR /usr/local/src
+
+# Download, extract, configure, compile, and install wget manually
+RUN curl -LO https://ftp.gnu.org/gnu/wget/wget-1.21.1.tar.gz && \
+    tar -xzf wget-1.21.1.tar.gz && \
+    cd wget-1.21.1 && \
+    chmod +x configure && \
+    ./configure --with-ssl=gnutls && \
+    make -j$(nproc) && \
+    make install && \
+    cd .. && rm -rf wget-1.21.1 wget-1.21.1.tar.gz
+
+# Reset environment to avoid issues in later layers
+ENV DEBIAN_FRONTEND=
+
+# Set the working directory
+WORKDIR /
+
+# Verify installation
+RUN wget --version
